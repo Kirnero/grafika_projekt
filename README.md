@@ -1,6 +1,6 @@
 # Grafika Projekt - Minesweeper 3D
 
-Projekt został wykonany na szkielecie pobranym ze strony przedmiotu Grafika i Wizualizacja Danych
+Projekt został wykonany na szkielecie pobranym ze strony przedmiotu Grafika Komputerowa i Wizualizacja
 
 ## Controls
 * Arrows -> movement of chosen tile
@@ -17,6 +17,7 @@ Projekt został wykonany na szkielecie pobranym ze strony przedmiotu Grafika i W
 * Functional bombs
 * Functional cursor
 * Flagging mechanic
+* Shading
 
 ## TO-DO
 * Hide the bombs

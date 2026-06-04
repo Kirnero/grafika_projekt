@@ -293,17 +293,30 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
     glUniformMatrix4fv(sp->u("P"),1,false,glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"),1,false,glm::value_ptr(V));
 
+    // Pass light position (point light above the board)
+    glm::vec3 lightPos = glm::vec3(5.0f, 8.0f, 5.0f);
+    glUniform3fv(sp->u("uLightPos"), 1, glm::value_ptr(lightPos));
+    
+    // Pass camera position
+    glm::vec3 cameraPos = glm::vec3(0, 3, -camera_distance);
+    glUniform3fv(sp->u("uViewPos"), 1, glm::value_ptr(cameraPos));
+
     glEnableVertexAttribArray(sp->a("vertex"));  //Włącz przesyłanie danych do atrybutu vertex
     glVertexAttribPointer(sp->a("vertex"),4,GL_FLOAT,false,0,vertices); //Wskaż tablicę z danymi dla atrybutu vertex
 
 	// Enable per-vertex colors (from myCubeColors)
 	glEnableVertexAttribArray(sp->a("color"));
 	glVertexAttribPointer(sp->a("color"),4,GL_FLOAT,false,0,colors);
+	
+	// Enable normals
+	glEnableVertexAttribArray(sp->a("normal"));
+	glVertexAttribPointer(sp->a("normal"),4,GL_FLOAT,false,0,normals);
     
     board.draw_board(M);
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wyłącz przesyłanie danych do atrybutu vertex
 	glDisableVertexAttribArray(sp->a("color"));
+	glDisableVertexAttribArray(sp->a("normal"));
 
     glfwSwapBuffers(window); //Przerzuć tylny bufor na przedni
 
@@ -345,7 +358,7 @@ int main(void)
 
 	//Główna pętla
 	float angle_x=0; //Aktualny kąt obrotu obiektu
-	float angle_y=-0.2; //Aktualny kąt obrotu obiektu
+	float angle_y=-0.5; //Aktualny kąt obrotu obiektu
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
