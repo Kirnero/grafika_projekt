@@ -44,8 +44,7 @@ float speed_y=0;
 float aspectRatio=1;
 int camera_distance = 15;
 
-const int boardSize = 8;
-float blockSpacing = 1.4f;
+
 
 ShaderProgram *sp;
 
@@ -73,25 +72,26 @@ class coordinates{
 	float z;
 };
 
-class Cube{
-	public:
-		coordinates position;
-		bool isMine = false;
-		bool isFlagged = false;
-		bool isRevealed = false;
-		bool isEscaping = false;
-		bool cursor = false;
-		glm::vec4 color = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f); // default gray
-		float scale = 0.4f;
+// Helper function to draw a single small cube (for number rendering)
+void draw_small_cube(glm::vec3 position, float scale, glm::vec4 color, glm::mat4 baseM) {
+	glm::mat4 M = baseM;
+	M = glm::translate(M, position);
+	M = glm::scale(M, glm::vec3(scale, scale, scale));
+	
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
+	glUniform4fv(sp->u("uColor"), 1, glm::value_ptr(color));
+	
+	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+}
 
+
+class baseCube{
+	public:
+	coordinates position;
+	glm::vec4 color;
+	float scale;
 
 	void draw_cube(glm::mat4 baseM){
-		if(isRevealed) return; // don't draw if revealed
-		if(isEscaping) {
-			scale += isMine ? 0.002f : -0.002f; // mines grow, safe cubes shrink
-			if(scale < 0.01f || scale > 1.0f) isRevealed = true; 
-		}
-
 		glm::mat4 M = baseM;
 		M = glm::translate(M, glm::vec3(position.x, position.y, position.z));
 		M = glm::scale(M, glm::vec3(scale, scale, scale));
@@ -99,9 +99,39 @@ class Cube{
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 		glUniform4fv(sp->u("uColor"), 1, glm::value_ptr(color));
 		
-
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	}
+};
+
+class Tile : public baseCube{
+	public:
+		bool isMine;
+		bool isFlagged;
+		bool isRevealed;
+		bool isEscaping;
+		bool cursor;
+	
+	Tile(float x = 0, float y = 0, float z = 0){
+		position = {x, y, z};
+		isMine = false;
+		isFlagged = false;
+		isRevealed = false;
+		isEscaping = false;
+		cursor = false;
+		color = GREY;
+		scale = 0.4f;
+	}
+
+	void draw_tile(glm::mat4 baseM){
+		if(isRevealed && !isMine) return; // don't draw if revealed
+		if(isEscaping) {
+			scale += isMine ? 0.002f : -0.002f; // mines grow, safe cubes shrink
+			if(scale < 0.01f || scale > 1.0f) {isRevealed = true; isEscaping = false;} 
+		}
+
+		draw_cube(baseM);
+	}
+	
 
 	void killCube(){
 		if(isFlagged) return;
@@ -111,7 +141,7 @@ class Cube{
 	}
 
 	void flagCube(){
-		
+		if(isRevealed || isEscaping) return;
 		if(!isFlagged){
 			isFlagged = true;
 			std::cout << "Flag placed at (" << position.x << ", " << position.z << ")" << std::endl;
@@ -125,11 +155,142 @@ class Cube{
 	}
 };
 
+class Number : public baseCube{
+	public:
+		int number;
+		coordinates center;
+	
+	Number(float x = 0, float y = 0, float z = 0){
+		center = {x, y, z};
+		position = {x, y, z};
+		number = 0;
+		color = GREY;
+		scale = scale/5;
+	}
+
+	// 0,0 is in the center
+	void draw_number_cube(int x_offset, int z_offset, glm::mat4 baseM, float spacing = 10){
+		float x = x_offset * blockSpacing / spacing;
+		float z = z_offset * blockSpacing / spacing;
+		position = {center.x + x, center.y, center.z + z};
+		draw_cube(baseM);
+	}
+
+	void draw_number(glm::mat4 baseM){
+		switch(number) {
+			case 0: return; // No number for 0
+			case 1:
+				color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(0, 1, baseM);
+				draw_number_cube(0, 0, baseM);
+				draw_number_cube(0, -1, baseM);
+				draw_number_cube(0, -2, baseM);
+				break;  // Blue
+			case 2:
+				color = glm::vec4(0.0f, 0.5f, 0.0f, 1.0f);
+				draw_number_cube(0, 0, baseM);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(0, -2, baseM);
+				draw_number_cube(1, 0, baseM);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(1, -2, baseM);
+				draw_number_cube(1, -1, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(-1, 2, baseM);
+				draw_number_cube(-1, -2, baseM);
+				draw_number_cube(-1, 1, baseM);
+				break;  // Dark Green
+			case 3:
+				color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+				draw_number_cube(0, 0, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(-1, -1, baseM);
+				draw_number_cube(-1, -2, baseM);
+				draw_number_cube(-1, 1, baseM);
+				draw_number_cube(-1, 2, baseM);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(0, -2, baseM);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(1, -2, baseM);
+				break;  // Red
+			case 4:
+				color = glm::vec4(0.0f, 0.0f, 0.5f, 1.0f);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(1, 1, baseM);
+				draw_number_cube(1, 0, baseM);
+				draw_number_cube(0, 0, baseM);
+				draw_number_cube(-1, 2, baseM);
+				draw_number_cube(-1, 1, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(-1, -1, baseM);
+				draw_number_cube(-1, -2, baseM);
+				break;  // Dark Blue
+			case 5:
+				color = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
+				draw_number_cube(0, 0, baseM);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(0, -2, baseM);
+				draw_number_cube(1, 0, baseM);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(1, -2, baseM);
+				draw_number_cube(1, 1, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(-1, 2, baseM);
+				draw_number_cube(-1, -2, baseM);
+				draw_number_cube(-1, -1, baseM);
+				break;  // Dark Red
+			case 6:
+				color = glm::vec4(0.0f, 0.5f, 0.5f, 1.0f);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(1, 1, baseM);
+				draw_number_cube(1, 0, baseM);
+				draw_number_cube(1, -1, baseM);
+				draw_number_cube(1, -2, baseM);
+				draw_number_cube(0, -2, baseM);
+				draw_number_cube(-1, -2, baseM);
+				draw_number_cube(-1, -1, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(0, 0, baseM);
+				break;  // Cyan
+			case 7:
+				color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(-1, 2, baseM);
+				draw_number_cube(-1, 1, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(-1, -1, baseM);
+				draw_number_cube(-1, -2, baseM);
+				break;  // Black
+			case 8:
+				color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+				draw_number_cube(1, 2, baseM);
+				draw_number_cube(1, 1, baseM);
+				draw_number_cube(1, 0, baseM);
+				draw_number_cube(1, -1, baseM);
+				draw_number_cube(1, -2, baseM);
+				draw_number_cube(0, 2, baseM);
+				draw_number_cube(0, 0, baseM);
+				draw_number_cube(0, -2, baseM);
+				draw_number_cube(-1, 2, baseM);
+				draw_number_cube(-1, 1, baseM);
+				draw_number_cube(-1, 0, baseM);
+				draw_number_cube(-1, -1, baseM);
+				draw_number_cube(-1, -2, baseM);
+				break;  // Gray
+			default: return;
+		}
+	}
+};
+
 class Board{
 	public:
 	float boardOffset = (boardSize - 1) * blockSpacing / 2.0f;  //Wycentruj planszę
-	Cube cubes[boardSize][boardSize];
-	Cube cursorCube;
+	Tile tiles[boardSize][boardSize];
+	Tile cursorCube;
+	Number numbers[boardSize][boardSize];
 	int x_position = 0;
 	int z_position = 0;
 
@@ -142,10 +303,22 @@ class Board{
 				x = rand() % boardSize;
 				z = rand() % boardSize;
 			}
-			while(cubes[x][z].isMine);
+			while(tiles[x][z].isMine);
 
-			cubes[x][z].isMine = true;
+			tiles[x][z].isMine = true;
 		}
+	}
+
+	int countAdjacentMines(int x, int z){
+		int count = 0;
+		for(int i = -1; i <= 1; i++){
+			for(int j = -1; j <= 1; j++){
+				if(x + i >= 0 && x + i < boardSize && z + j >= 0 && z + j < boardSize && !(i == 0 && j==0)){
+					if(tiles[x + i][z + j].isMine) count++;
+				}
+			}
+		}
+		return count;
 	}
 
 	void initializeCubes(){
@@ -154,52 +327,52 @@ class Board{
 		
 		for(int i = 0; i < boardSize; i++){
 			for(int j = 0; j < boardSize; j++){
-				cubes[i][j].position = {i * blockSpacing - boardOffset, 0, j * blockSpacing - boardOffset};
-				cubes[i][j].isMine = false;
-				cubes[i][j].isFlagged = false;
-				cubes[i][j].isRevealed = false;
-				cubes[i][j].isEscaping = false;
-				cubes[i][j].cursor = false;
-				cubes[i][j].color = GREY;
-				cubes[i][j].scale = 0.4f;
+				tiles[i][j] = Tile(i * blockSpacing - boardOffset, 0, j * blockSpacing - boardOffset);
+				numbers[i][j] = Number(i * blockSpacing - boardOffset, 0, j * blockSpacing - boardOffset);
 			}
 		}
-		randomizeMines(10);
+		randomizeMines(20);
+		
+		// Count adjacent mines after placing mines
+		for(int i = 0; i < boardSize; i++){
+			for(int j = 0; j < boardSize; j++){
+				numbers[i][j].number = countAdjacentMines(i, j);
+			}
+		}
 
 		cursorCube.position = {x_position * blockSpacing - boardOffset, 0.5f, z_position * blockSpacing - boardOffset};
-		cubes[x_position][z_position].cursor = true;
+		tiles[x_position][z_position].cursor = true;
 		cursorCube.color = BLUE;
 		cursorCube.scale = 0.2f;
 
 		// to change
-		for(int i = 0; i < boardSize; i++){
-			for(int j = 0; j < boardSize; j++){
-				if(cubes[i][j].isMine) cubes[i][j].color = RED;
-			}
-		}
+		//for(int i = 0; i < boardSize; i++){for(int j = 0; j < boardSize; j++){if(tiles[i][j].isMine) tiles[i][j].color = RED;}}
 	}
 
 	void draw_cursor(int x, int z){
-		cubes[x_position][z_position].cursor = false;
+		tiles[x_position][z_position].cursor = false;
 		x_position += x;
 		z_position += z;
 		cursorCube.position = {x_position * blockSpacing - boardOffset, 0.5f, z_position * blockSpacing - boardOffset};
-		cubes[x_position][z_position].cursor = true;
+		tiles[x_position][z_position].cursor = true;
 	}
 
 	void check_cube(bool flag){
 		if(flag) {
-			cubes[x_position][z_position].flagCube();
+			tiles[x_position][z_position].flagCube();
 		}
 		else {
-			cubes[x_position][z_position].killCube();
+			tiles[x_position][z_position].killCube();
 		}
 	}
 
 	void draw_board(glm::mat4 baseM){
 		for(int x = 0; x < boardSize; x++){
 			for(int z = 0; z < boardSize; z++){
-				cubes[x][z].draw_cube(baseM);
+				tiles[x][z].draw_tile(baseM);
+				if(tiles[x][z].isRevealed){
+					numbers[x][z].draw_number(baseM);
+				}
 			}
 		}
 		cursorCube.draw_cube(baseM);
