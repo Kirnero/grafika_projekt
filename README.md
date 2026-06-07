@@ -8,7 +8,7 @@ Projekt został wykonany na szkielecie pobranym ze strony przedmiotu Grafika Kom
 * O, P -> Bring the camer closer / further from the board
 * Space -> Reveal a tile
 * E -> Toggle the flagging of chosen tile
-* R -> Reset the game
+* R -> Reset the game (once per second)
 * ESC -> Close the game
 
 ## Features
@@ -18,9 +18,8 @@ Projekt został wykonany na szkielecie pobranym ze strony przedmiotu Grafika Kom
 * Functional cursor
 * Flagging mechanic
 * Shading
+* Numbers :)
+* Texture for explosions
 
 ## TO-DO
-* Hide the bombs
-* Show the numbers
 * Game over
-* Text?

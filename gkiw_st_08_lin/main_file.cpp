@@ -25,6 +25,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <string>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -43,11 +44,34 @@ float speed_x=0;
 float speed_y=0;
 float aspectRatio=1;
 int camera_distance = 15;
+bool scoreTitle = false;
 
-
+GLuint tex0;
 
 ShaderProgram *sp;
 
+GLuint readTexture(const char* filename) {
+ GLuint tex;
+ glActiveTexture(GL_TEXTURE0);
+ //Wczytanie do pamięci komputera
+ std::vector<unsigned char> image; //Alokuj wektor do wczytania obrazka
+ unsigned width, height; //Zmienne do których wczytamy wymiary obrazka
+ //Wczytaj obrazek
+ unsigned error = lodepng::decode(image, width, height, filename);
+ if (error) {
+     std::cerr << "Failed to load texture '" << filename << "': " << lodepng_error_text(error) << "\n";
+     return 0;
+ }
+ //Import do pamięci karty graficznej
+ glGenTextures(1,&tex); //Zainicjuj jeden uchwyt
+ glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
+ //Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
+ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+ GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*) image.data());
+ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+ return tex;
+}
 
 //Odkomentuj, żeby rysować kostkę
 float* vertices = myCubeVertices;
@@ -80,6 +104,7 @@ void draw_small_cube(glm::vec3 position, float scale, glm::vec4 color, glm::mat4
 	
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 	glUniform4fv(sp->u("uColor"), 1, glm::value_ptr(color));
+	glUniform1i(sp->u("uUseTexture"), 0);
 	
 	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
@@ -91,13 +116,14 @@ class baseCube{
 	glm::vec4 color;
 	float scale;
 
-	void draw_cube(glm::mat4 baseM){
+	void draw_cube(glm::mat4 baseM, bool useTexture=false){
 		glm::mat4 M = baseM;
 		M = glm::translate(M, glm::vec3(position.x, position.y, position.z));
 		M = glm::scale(M, glm::vec3(scale, scale, scale));
 		
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 		glUniform4fv(sp->u("uColor"), 1, glm::value_ptr(color));
+		glUniform1i(sp->u("uUseTexture"), useTexture ? 1 : 0);
 		
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	}
@@ -128,12 +154,14 @@ class Tile : public baseCube{
 			scale += isMine ? 0.002f : -0.002f; // mines grow, safe cubes shrink
 			if(scale < 0.01f || scale > 1.0f) {isRevealed = true; isEscaping = false;} 
 		}
+		if(isRevealed && scale > 0.4f) scale = 0.4f;
 
-		draw_cube(baseM);
+		draw_cube(baseM, isEscaping && isMine);
 	}
 	
 
 	void killCube(){
+		scoreTitle = true;
 		if(isFlagged) return;
 		isEscaping = true;
 		if(isMine) color = RED;
@@ -287,12 +315,26 @@ class Number : public baseCube{
 
 class Board{
 	public:
-	float boardOffset = (boardSize - 1) * blockSpacing / 2.0f;  //Wycentruj planszę
+	float boardOffset;
 	Tile tiles[boardSize][boardSize];
 	Tile cursorCube;
 	Number numbers[boardSize][boardSize];
-	int x_position = 0;
-	int z_position = 0;
+	int x_position;
+	int z_position;
+	int totalRevealed;
+	int score;
+	int mineCount;
+	bool gameOver;
+
+	Board(int minecount = 10){
+		boardOffset = (boardSize - 1) * blockSpacing / 2.0f;
+		x_position = 0;
+		z_position = 0;
+		score = 0;
+		mineCount = minecount;
+		totalRevealed = 0;
+		gameOver = false;
+	}
 
 
 	void randomizeMines(int mineCount){
@@ -331,7 +373,8 @@ class Board{
 				numbers[i][j] = Number(i * blockSpacing - boardOffset, 0, j * blockSpacing - boardOffset);
 			}
 		}
-		randomizeMines(20);
+
+		randomizeMines(mineCount);
 		
 		// Count adjacent mines after placing mines
 		for(int i = 0; i < boardSize; i++){
@@ -363,6 +406,8 @@ class Board{
 		}
 		else {
 			tiles[x_position][z_position].killCube();
+			if(tiles[x_position][z_position].isMine && !tiles[x_position][z_position].isFlagged) score++;
+			totalRevealed++;
 		}
 	}
 
@@ -376,9 +421,12 @@ class Board{
 			}
 		}
 		cursorCube.draw_cube(baseM);
+		if(totalRevealed == boardSize * boardSize - mineCount + score) gameOver = true;
 	}
 
-} board;
+};
+
+Board board = Board(15);
 
 
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
@@ -430,8 +478,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window,windowResizeCallback);
 	glfwSetKeyCallback(window,keyCallback);
-
-
+	tex0=readTexture("tester.png");
 	sp=new ShaderProgram("v_simplest.glsl",NULL,"f_simplest.glsl");
 }
 
@@ -439,7 +486,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 //Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram(GLFWwindow* window) {
     //************Tutaj umieszczaj kod, który należy wykonać po zakończeniu pętli głównej************
-
+	glDeleteTextures(1,&tex0);
     delete sp;
 }
 
@@ -484,12 +531,20 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
 	// Enable normals
 	glEnableVertexAttribArray(sp->a("normal"));
 	glVertexAttribPointer(sp->a("normal"),4,GL_FLOAT,false,0,normals);
+
+	// Enable texture coordinates and bind the texture once for board rendering
+	glEnableVertexAttribArray(sp->a("texCoord"));
+	glVertexAttribPointer(sp->a("texCoord"),2,GL_FLOAT,false,0,texCoords);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex0);
+	glUniform1i(sp->u("textureMap0"), 0);
     
     board.draw_board(M);
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wyłącz przesyłanie danych do atrybutu vertex
 	glDisableVertexAttribArray(sp->a("color"));
 	glDisableVertexAttribArray(sp->a("normal"));
+	glDisableVertexAttribArray(sp->a("texCoord"));
 
     glfwSwapBuffers(window); //Przerzuć tylny bufor na przedni
 
@@ -509,7 +564,9 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	window = glfwCreateWindow(500, 500, "Minesweeper", NULL, NULL);  //Utwórz okno 500x500 o tytule "Minesweeper" i kontekst OpenGL.
+	std::string title = "Minesweeper - " + std::to_string(boardSize) + "x" + std::to_string(boardSize) + " with " + std::to_string(board.mineCount) + " mines";
+
+	window = glfwCreateWindow(500, 500, title.c_str(), NULL, NULL);  //Utwórz okno 500x500 o tytule "Minesweeper" i kontekst OpenGL.
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
@@ -535,6 +592,10 @@ int main(void)
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
+		if(scoreTitle){
+			std::string title = "Minesweeper - Score: " + std::to_string(board.mineCount - board.score) + " / " + std::to_string(board.mineCount);
+    		glfwSetWindowTitle(window, title.c_str());
+		}
 		float y_increment = speed_y*glfwGetTime();
         angle_x+=speed_x*glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
         if(angle_y + y_increment > -1 && angle_y + y_increment < 0.2) angle_y+=speed_y*glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki

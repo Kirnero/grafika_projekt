@@ -5,23 +5,26 @@ out vec4 pixelColor;
 in vec4 vColor;
 in vec3 vNormal;
 in vec3 vFragPos;
+in vec2 iTexCoord0;
 
 uniform vec4 uColor; // per-cube color
 uniform vec3 uLightPos; // light position in world space
 uniform vec3 uViewPos; // camera position in world space
+uniform bool uUseTexture;
+uniform sampler2D textureMap0;
 
 void main(void) {
-    vec3 baseColor = uColor.rgb;
+    vec3 actualColor = uUseTexture ? texture(textureMap0, iTexCoord0).rgb : uColor.rgb;
 
     // Ambient
     float ambientStrength = 0.3;
-    vec3 ambient = ambientStrength * baseColor;
+    vec3 ambient = ambientStrength * actualColor;
     
     // Diffuse
     vec3 norm = normalize(vNormal);
     vec3 lightDir = normalize(uLightPos - vFragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * baseColor;
+    vec3 diffuse = diff * actualColor;
     
     // Specular
     float specularStrength = 0.5;
