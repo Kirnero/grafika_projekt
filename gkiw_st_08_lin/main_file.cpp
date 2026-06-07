@@ -411,6 +411,14 @@ class Board{
 		}
 	}
 
+	void reset_board(){
+		initializeCubes();
+		score = 0;
+		totalRevealed = 0;
+		gameOver = false;
+		scoreTitle = false;
+	}
+
 	void draw_board(glm::mat4 baseM){
 		for(int x = 0; x < boardSize; x++){
 			for(int z = 0; z < boardSize; z++){
@@ -443,7 +451,7 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
 		if (key==GLFW_KEY_UP && board.z_position < boardSize - 1) board.draw_cursor(0, 1);
         if (key==GLFW_KEY_SPACE) board.check_cube(false);
         if (key==GLFW_KEY_E) board.check_cube(true);
-		if (key==GLFW_KEY_R) board.initializeCubes();
+		if (key==GLFW_KEY_R) board.reset_board();
 		if (key==GLFW_KEY_ESCAPE) {
 			glfwSetWindowShouldClose(window, true);
 		}
@@ -564,9 +572,9 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	std::string title = "Minesweeper - " + std::to_string(boardSize) + "x" + std::to_string(boardSize) + " with " + std::to_string(board.mineCount) + " mines";
+	std::string title_init = "Minesweeper - " + std::to_string(boardSize) + "x" + std::to_string(boardSize) + " with " + std::to_string(board.mineCount) + " mines";
 
-	window = glfwCreateWindow(500, 500, title.c_str(), NULL, NULL);  //Utwórz okno 500x500 o tytule "Minesweeper" i kontekst OpenGL.
+	window = glfwCreateWindow(500, 500, title_init.c_str(), NULL, NULL);  //Utwórz okno 500x500 o tytule "Minesweeper" i kontekst OpenGL.
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
@@ -593,8 +601,11 @@ int main(void)
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
 		if(scoreTitle){
-			std::string title = "Minesweeper - Score: " + std::to_string(board.mineCount - board.score) + " / " + std::to_string(board.mineCount);
-    		glfwSetWindowTitle(window, title.c_str());
+			std::string title_score = "Minesweeper - Score: " + std::to_string(board.mineCount - board.score) + " / " + std::to_string(board.mineCount);
+    		glfwSetWindowTitle(window, title_score.c_str());
+		}
+		else{
+			glfwSetWindowTitle(window, title_init.c_str());
 		}
 		float y_increment = speed_y*glfwGetTime();
         angle_x+=speed_x*glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
