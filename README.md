@@ -18,8 +18,11 @@ Projekt został wykonany na szkielecie pobranym ze strony przedmiotu Grafika Kom
 * Functional cursor
 * Flagging mechanic
 * Shading
-* Numbers :)
+* Numbers
 * Texture for explosions
 
-## TO-DO
-* Game over
+## How to compile
+Go to gkiw folder and run this in terminal. It will also create an executible file named main_file in the folder higher up
+```bash
+make run
+```

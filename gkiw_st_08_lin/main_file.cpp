@@ -96,20 +96,6 @@ class coordinates{
 	float z;
 };
 
-// Helper function to draw a single small cube (for number rendering)
-void draw_small_cube(glm::vec3 position, float scale, glm::vec4 color, glm::mat4 baseM) {
-	glm::mat4 M = baseM;
-	M = glm::translate(M, position);
-	M = glm::scale(M, glm::vec3(scale, scale, scale));
-	
-	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
-	glUniform4fv(sp->u("uColor"), 1, glm::value_ptr(color));
-	glUniform1i(sp->u("uUseTexture"), 0);
-	
-	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-}
-
-
 class baseCube{
 	public:
 	coordinates position;
@@ -137,6 +123,7 @@ class Tile : public baseCube{
 		bool isEscaping;
 		bool cursor;
 	
+	// Constructor
 	Tile(float x = 0, float y = 0, float z = 0){
 		position = {x, y, z};
 		isMine = false;
@@ -148,6 +135,7 @@ class Tile : public baseCube{
 		scale = 0.4f;
 	}
 
+	
 	void draw_tile(glm::mat4 baseM){
 		if(isRevealed && !isMine) return; // don't draw if revealed
 		if(isEscaping) {
@@ -159,7 +147,7 @@ class Tile : public baseCube{
 		draw_cube(baseM, isEscaping && isMine);
 	}
 	
-
+	// Sets parameters so that the draw_tile function will begin killing the cube
 	void killCube(){
 		scoreTitle = true;
 		if(isFlagged) return;
@@ -168,6 +156,7 @@ class Tile : public baseCube{
 		else color = GREEN;
 	}
 
+	// Toggles the flag on the cube, if it's not revealed or escaping
 	void flagCube(){
 		if(isRevealed || isEscaping) return;
 		if(!isFlagged){
@@ -183,6 +172,8 @@ class Tile : public baseCube{
 	}
 };
 
+// Class to handle drawing numbers on the board
+// Each number is a 3x5 grid
 class Number : public baseCube{
 	public:
 		int number;
@@ -196,6 +187,7 @@ class Number : public baseCube{
 		scale = scale/5;
 	}
 
+	// Helper function to handle specific number's segment coordinates
 	// 0,0 is in the center
 	void draw_number_cube(int x_offset, int z_offset, glm::mat4 baseM, float spacing = 10){
 		float x = x_offset * blockSpacing / spacing;
@@ -204,6 +196,7 @@ class Number : public baseCube{
 		draw_cube(baseM);
 	}
 
+	// Function to actually draw the number based on number atribute
 	void draw_number(glm::mat4 baseM){
 		switch(number) {
 			case 0: return; // No number for 0
@@ -313,6 +306,7 @@ class Number : public baseCube{
 	}
 };
 
+// The main board, handles most of the game logic and drawing
 class Board{
 	public:
 	float boardOffset;
@@ -392,7 +386,7 @@ class Board{
 		//for(int i = 0; i < boardSize; i++){for(int j = 0; j < boardSize; j++){if(tiles[i][j].isMine) tiles[i][j].color = RED;}}
 	}
 
-	void draw_cursor(int x, int z){
+	void update_cursor(int x, int z){
 		tiles[x_position][z_position].cursor = false;
 		x_position += x;
 		z_position += z;
@@ -405,8 +399,8 @@ class Board{
 			tiles[x_position][z_position].flagCube();
 		}
 		else {
+			if(tiles[x_position][z_position].isMine && !tiles[x_position][z_position].isFlagged && !tiles[x_position][z_position].isRevealed && !tiles[x_position][z_position].isEscaping) score++;
 			tiles[x_position][z_position].killCube();
-			if(tiles[x_position][z_position].isMine && !tiles[x_position][z_position].isFlagged) score++;
 			totalRevealed++;
 		}
 	}
@@ -445,10 +439,10 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
         if (key==GLFW_KEY_S) speed_y=-PI/2;
 		if (key==GLFW_KEY_O && camera_distance < 30) camera_distance++;
 		if (key==GLFW_KEY_P && camera_distance > 1) camera_distance--;
-		if (key==GLFW_KEY_RIGHT && board.x_position > 0) board.draw_cursor(-1, 0);
-		if (key==GLFW_KEY_LEFT && board.x_position < boardSize - 1) board.draw_cursor(1, 0);
-		if (key==GLFW_KEY_DOWN && board.z_position > 0) board.draw_cursor(0, -1);
-		if (key==GLFW_KEY_UP && board.z_position < boardSize - 1) board.draw_cursor(0, 1);
+		if (key==GLFW_KEY_RIGHT && board.x_position > 0) board.update_cursor(-1, 0);
+		if (key==GLFW_KEY_LEFT && board.x_position < boardSize - 1) board.update_cursor(1, 0);
+		if (key==GLFW_KEY_DOWN && board.z_position > 0) board.update_cursor(0, -1);
+		if (key==GLFW_KEY_UP && board.z_position < boardSize - 1) board.update_cursor(0, 1);
         if (key==GLFW_KEY_SPACE) board.check_cube(false);
         if (key==GLFW_KEY_E) board.check_cube(true);
 		if (key==GLFW_KEY_R) board.reset_board();
@@ -486,7 +480,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window,windowResizeCallback);
 	glfwSetKeyCallback(window,keyCallback);
-	tex0=readTexture("tester.png");
+	tex0=readTexture("tiger.png");
 	sp=new ShaderProgram("v_simplest.glsl",NULL,"f_simplest.glsl");
 }
 
