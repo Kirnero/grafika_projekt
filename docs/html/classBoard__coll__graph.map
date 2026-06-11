@@ -1,0 +1,13 @@
+<map id="Board" name="Board">
+<area shape="rect" id="Node000001" title="Game board logic and rendering controller." alt="" coords="59,271,119,296"/>
+<area shape="rect" id="Node000002" href="$classTile.html" title="Represents a single Minesweeper tile on the 3D board." alt="" coords="13,168,60,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="34,207,34,227,39,245,49,258,63,268,60,273,46,262,34,248,28,227,29,207"/>
+<area shape="rect" id="Node000003" href="$classbaseCube.html" title="Shared cube rendering base for tile and number objects." alt="" coords="5,93,92,119"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="47,133,41,168,36,167,42,132"/>
+<area shape="rect" id="Node000005" href="$classNumber.html" title="Draws the adjacent mine count using small cubes." alt="" coords="103,168,178,193"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="76,125,127,165,124,170,72,129"/>
+<area shape="rect" id="Node000004" href="$classcoordinates.html" title="A simple 3D coordinate container." alt="" coords="46,5,145,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="76,43,67,56,53,94,48,92,62,53,72,40"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="117,40,124,54,134,85,140,117,143,168,138,168,135,118,129,86,120,56,112,43"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="135,207,116,248,101,272,96,269,112,245,130,205"/>
+</map>

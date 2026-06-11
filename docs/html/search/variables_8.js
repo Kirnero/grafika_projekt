@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['ignore_5fadler32_0',['ignore_adler32',['../structLodePNGDecompressSettings.html#afab4b919650b51b4d2f175a60ed6c580',1,'LodePNGDecompressSettings']]],
+  ['ignore_5fcrc_1',['ignore_crc',['../structLodePNGDecoderSettings.html#a6390c403d2a5718242337bbbaf15131d',1,'LodePNGDecoderSettings']]],
+  ['in_5fuse_2',['in_use',['../structBPMNode.html#ae0117b99903b29d19f41e0c242c25dca',1,'BPMNode']]],
+  ['index_3',['index',['../structBPMNode.html#a8a77213810f8e491f8d1f7d8793b641f',1,'BPMNode::index'],['../structColorTree.html#ab3836a4a5981a7cf4ef553d25d9b0361',1,'ColorTree::index']]],
+  ['info_5fpng_4',['info_png',['../structLodePNGState.html#a08d9ac43c995fcf34d72b1d37047b6fa',1,'LodePNGState']]],
+  ['info_5fraw_5',['info_raw',['../structLodePNGState.html#a597bc08de787147474d43adf8b6ceacf',1,'LodePNGState']]],
+  ['interlace_5fmethod_6',['interlace_method',['../structLodePNGInfo.html#a80207e3e53c959b2285636496a3dd3f1',1,'LodePNGInfo']]],
+  ['isescaping_7',['isEscaping',['../classTile.html#a89723a86b9666d23b03062373d46a312',1,'Tile']]],
+  ['isflagged_8',['isFlagged',['../classTile.html#ad93ac295cce8518a42947622b33fa9a1',1,'Tile']]],
+  ['ismine_9',['isMine',['../classTile.html#a584d0863fed43ce24a35dc32629d03b7',1,'Tile']]],
+  ['isrevealed_10',['isRevealed',['../classTile.html#a641a0ae139ee0b4a6c8ee220b3fe7704',1,'Tile']]],
+  ['itext_5fkeys_11',['itext_keys',['../structLodePNGInfo.html#a1b909e03596abf86d564641741b0087f',1,'LodePNGInfo']]],
+  ['itext_5flangtags_12',['itext_langtags',['../structLodePNGInfo.html#ae9f9f594e63c910d467a14f550960837',1,'LodePNGInfo']]],
+  ['itext_5fnum_13',['itext_num',['../structLodePNGInfo.html#a22166bb10c89a4d80e206d6c4736b625',1,'LodePNGInfo']]],
+  ['itext_5fstrings_14',['itext_strings',['../structLodePNGInfo.html#a7014fd40ffeb1d482f72d33c020cf73e',1,'LodePNGInfo']]],
+  ['itext_5ftranskeys_15',['itext_transkeys',['../structLodePNGInfo.html#a93a8e823ac715dbdd625f023d8fdebc2',1,'LodePNGInfo']]]
+];

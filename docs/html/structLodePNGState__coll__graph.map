@@ -1,0 +1,18 @@
+<map id="LodePNGState" name="LodePNGState">
+<area shape="rect" id="Node000001" title=" " alt="" coords="389,181,503,207"/>
+<area shape="rect" id="Node000002" href="$structLodePNGDecoderSettings.html" title=" " alt="" coords="28,93,216,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,120,404,179,402,184,178,125"/>
+<area shape="rect" id="Node000003" href="$structLodePNGDecompressSettings.html" title=" " alt="" coords="5,5,220,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="118,44,123,93,118,93,113,45"/>
+<area shape="rect" id="Node000004" href="$structLodePNGEncoderSettings.html" title=" " alt="" coords="250,93,437,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="370,126,433,179,430,183,366,130"/>
+<area shape="rect" id="Node000005" href="$structLodePNGCompressSettings.html" title=" " alt="" coords="244,5,443,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="346,45,346,93,341,93,341,45"/>
+<area shape="rect" id="Node000006" href="$structLodePNGColorMode.html" title=" " alt="" coords="467,5,617,31"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="530,43,499,95,467,159,455,182,450,180,462,156,494,92,525,41"/>
+<area shape="rect" id="Node000007" href="$structLodePNGInfo.html" title=" " alt="" coords="570,93,677,119"/>
+<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="564,39,614,91,610,95,560,43"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="589,127,471,183,469,179,586,122"/>
+<area shape="rect" id="Node000008" href="$structLodePNGTime.html" title=" " alt="" coords="642,5,757,31"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="682,43,636,95,632,91,678,39"/>
+</map>

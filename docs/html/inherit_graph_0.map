@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$classbaseCube.html" title="Shared cube rendering base for tile and number objects." alt="" coords="5,31,92,56"/>
+<area shape="rect" id="Node000001" href="$classNumber.html" title="Draws the adjacent mine count using small cubes." alt="" coords="140,5,215,31"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="105,30,139,23,140,28,106,35"/>
+<area shape="rect" id="Node000002" href="$classTile.html" title="Represents a single Minesweeper tile on the 3D board." alt="" coords="154,55,201,80"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="106,51,154,60,153,66,105,57"/>
+</map>

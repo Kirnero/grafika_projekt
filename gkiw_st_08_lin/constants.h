@@ -1,3 +1,8 @@
+/**
+ * @file constants.h
+ * @brief Global constants for the project.
+*/
+
 /*
 Niniejszy program jest wolnym oprogramowaniem; możesz go
 rozprowadzać dalej i / lub modyfikować na warunkach Powszechnej
@@ -25,6 +30,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 const float PI = 3.141592653589793f;
 const int boardSize = 8;
 const float blockSpacing = 1.4f;
+
 
 #define RED glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
 #define BLUE glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)

@@ -1,0 +1,5 @@
+<map id="Tile" name="Tile">
+<area shape="rect" id="Node000001" title="Represents a single Minesweeper tile on the 3D board." alt="" coords="25,79,72,104"/>
+<area shape="rect" id="Node000002" href="$classbaseCube.html" title="Shared cube rendering base for tile and number objects." alt="" coords="5,5,92,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,44,51,79,46,79,46,44"/>
+</map>

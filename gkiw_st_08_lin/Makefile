@@ -5,7 +5,7 @@ FILE_DIRECTORY = gkiw_st_08_lin
 
 
 main_file: $(FILES) $(HEADERS)
-	g++ -o ../main_file $(FILES)  $(LIBS) -I./glm/ -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Wno-unknown-pragmas
+	g++ -o ../main_file $(FILES)  $(LIBS) -I./glm/ -Wall -Wextra
 
 run:
 	make && .././main_file

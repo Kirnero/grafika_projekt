@@ -1,0 +1,5 @@
+<map id="baseCube" name="baseCube">
+<area shape="rect" id="Node000001" title="Shared cube rendering base for tile and number objects." alt="" coords="11,93,98,119"/>
+<area shape="rect" id="Node000002" href="$classcoordinates.html" title="A simple 3D coordinate container." alt="" coords="5,5,104,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="57,45,57,93,52,93,52,45"/>
+</map>

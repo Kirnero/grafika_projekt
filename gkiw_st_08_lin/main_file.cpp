@@ -1,3 +1,24 @@
+/**
+ * @file main_file.cpp
+ * @brief Main logic and rendering center for the 3D Minesweeper project.
+ *
+ * @details Implements the game loop, input handling, camera control,
+ *          board logic, and shading for a 3D Minesweeper scene.
+ *
+ *          Features include random mine placement, cursor navigation,
+ *          flag toggling, reveal animation, light shading, and textured
+ *          explosion rendering.
+ *
+ * @note Controls:
+ *       - Arrow keys: move selected tile
+ *       - W/A/S/D: rotate camera
+ *       - O/P: zoom in/out
+ *       - Space: reveal selected tile
+ *       - E: toggle flag
+ *       - R: reset game
+ *       - Esc: close game
+ */
+
 /*
 Niniejszy program jest wolnym oprogramowaniem; możesz go
 rozprowadzać dalej i / lub modyfikować na warunkach Powszechnej
@@ -40,16 +61,28 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "myCube.h"
 #include "myTeapot.h"
 
+/// @brief Current rotation speed around the x axis.
 float speed_x=0;
+/// @brief Current rotation speed around the y axis.
 float speed_y=0;
+/// @brief Current viewport aspect ratio.
 float aspectRatio=1;
+/// @brief Distance of the camera from the board.
 int camera_distance = 15;
+/// @brief Whether the score title is displayed in the window title.
 bool scoreTitle = false;
 
+/// @brief Texture handle used for board and explosion rendering.
 GLuint tex0;
 
+/// @brief Pointer to the active shader program used for rendering.
 ShaderProgram *sp;
 
+/**
+ * @brief Load an RGBA texture from a PNG file.
+ * @param filename Path to the PNG texture file.
+ * @return OpenGL texture handle, or 0 on failure.
+ */
 GLuint readTexture(const char* filename) {
  GLuint tex;
  glActiveTexture(GL_TEXTURE0);
@@ -89,6 +122,11 @@ int vertexCount = myCubeVertexCount;
 //float* colors = myTeapotColors;
 //int vertexCount = myTeapotVertexCount;
 
+/**
+ * @class coordinates
+ * @brief A simple 3D coordinate container.
+ * @details Holds a world-space position for cubes and board elements.
+ */
 class coordinates{
 	public:
 	float x;
@@ -96,12 +134,22 @@ class coordinates{
 	float z;
 };
 
+/**
+ * @class baseCube
+ * @brief Shared cube rendering base for tile and number objects.
+ * @details Provides position, color, and scale, and a basic draw routine.
+ */
 class baseCube{
 	public:
 	coordinates position;
 	glm::vec4 color;
 	float scale;
 
+	/**
+	 * @brief Draw a cube using the provided model matrix.
+	 * @param baseM Base model matrix used for world transform.
+	 * @param useTexture When true, bind the active texture for the cube.
+	 */
 	void draw_cube(glm::mat4 baseM, bool useTexture=false){
 		glm::mat4 M = baseM;
 		M = glm::translate(M, glm::vec3(position.x, position.y, position.z));
@@ -115,6 +163,11 @@ class baseCube{
 	}
 };
 
+/**
+ * @class Tile
+ * @brief Represents a single Minesweeper tile on the 3D board.
+ * @details Extends baseCube with mine, flag, reveal, and cursor state.
+ */
 class Tile : public baseCube{
 	public:
 		bool isMine;
@@ -123,7 +176,12 @@ class Tile : public baseCube{
 		bool isEscaping;
 		bool cursor;
 	
-	// Constructor
+	/**
+	 * @brief Construct a Tile at the given world coordinates.
+	 * @param x X coordinate in world space.
+	 * @param y Y coordinate in world space.
+	 * @param z Z coordinate in world space.
+	 */
 	Tile(float x = 0, float y = 0, float z = 0){
 		position = {x, y, z};
 		isMine = false;
@@ -136,6 +194,10 @@ class Tile : public baseCube{
 	}
 
 	
+	/**
+	 * @brief Draw the tile cube, including any reveal or escape animation.
+	 * @param baseM Base model matrix used for world transform.
+	 */
 	void draw_tile(glm::mat4 baseM){
 		if(isRevealed && !isMine) return; // don't draw if revealed
 		if(isEscaping) {
@@ -147,7 +209,10 @@ class Tile : public baseCube{
 		draw_cube(baseM, isEscaping && isMine);
 	}
 	
-	// Sets parameters so that the draw_tile function will begin killing the cube
+	/**
+	 * @brief Trigger the tile kill animation and update reveal state.
+	 * @note Mines are displayed in red, safe tiles in green after being revealed.
+	 */
 	void killCube(){
 		scoreTitle = true;
 		if(isFlagged) return;
@@ -156,7 +221,10 @@ class Tile : public baseCube{
 		else color = GREEN;
 	}
 
-	// Toggles the flag on the cube, if it's not revealed or escaping
+	/**
+	 * @brief Toggle the flag state for the tile.
+	 * @details A tile cannot be flagged if it is already revealed or escaping.
+	 */
 	void flagCube(){
 		if(isRevealed || isEscaping) return;
 		if(!isFlagged){
@@ -172,13 +240,23 @@ class Tile : public baseCube{
 	}
 };
 
-// Class to handle drawing numbers on the board
-// Each number is a 3x5 grid
+
+/**
+ * @class Number
+ * @brief Draws the adjacent mine count using small cubes.
+ * @details Numbers are built from a 3x5 grid of cubes that follow the tile center.
+ */
 class Number : public baseCube{
 	public:
 		int number;
 		coordinates center;
 	
+	/**
+	 * @brief Construct a Number display at the given world coordinates.
+	 * @param x X coordinate of the number center.
+	 * @param y Y coordinate of the number center.
+	 * @param z Z coordinate of the number center.
+	 */
 	Number(float x = 0, float y = 0, float z = 0){
 		center = {x, y, z};
 		position = {x, y, z};
@@ -187,8 +265,13 @@ class Number : public baseCube{
 		scale = scale/5;
 	}
 
-	// Helper function to handle specific number's segment coordinates
-	// 0,0 is in the center
+	/**
+	 * @brief Draw a single cube segment of the number display.
+	 * @param x_offset Horizontal segment offset in grid units.
+	 * @param z_offset Depth segment offset in grid units.
+	 * @param baseM Base model matrix used for world transform.
+	 * @param spacing Adjusts the spacing between number cubes.
+	 */
 	void draw_number_cube(int x_offset, int z_offset, glm::mat4 baseM, float spacing = 10){
 		float x = x_offset * blockSpacing / spacing;
 		float z = z_offset * blockSpacing / spacing;
@@ -196,7 +279,10 @@ class Number : public baseCube{
 		draw_cube(baseM);
 	}
 
-	// Function to actually draw the number based on number atribute
+	/**
+	 * @brief Draw the number geometry for the current number value.
+	 * @param baseM Base model matrix used for world transform.
+	 */
 	void draw_number(glm::mat4 baseM){
 		switch(number) {
 			case 0: return; // No number for 0
@@ -306,7 +392,12 @@ class Number : public baseCube{
 	}
 };
 
-// The main board, handles most of the game logic and drawing
+/**
+ * @class Board
+ * @brief Game board logic and rendering controller.
+ * @details Manages tile placement, mine generation, cursor movement, scoring,
+ *          and board drawing for the Minesweeper game.
+ */
 class Board{
 	public:
 	float boardOffset;
@@ -320,6 +411,10 @@ class Board{
 	int mineCount;
 	bool gameOver;
 
+	/**
+	 * @brief Construct a Board with the given mine count.
+	 * @param minecount Number of mines to place on the board.
+	 */
 	Board(int minecount = 10){
 		boardOffset = (boardSize - 1) * blockSpacing / 2.0f;
 		x_position = 0;
@@ -331,6 +426,10 @@ class Board{
 	}
 
 
+	/**
+	 * @brief Randomly place mines on the board.
+	 * @param mineCount Number of mines to place.
+	 */
 	void randomizeMines(int mineCount){
 		if(mineCount > boardSize * boardSize) mineCount = boardSize * boardSize - 1;
 		int x, z;
@@ -345,6 +444,12 @@ class Board{
 		}
 	}
 
+	/**
+	 * @brief Count mines adjacent to the tile at the given coordinates.
+	 * @param x Tile x coordinate on the board.
+	 * @param z Tile z coordinate on the board.
+	 * @return Number of adjacent mines.
+	 */
 	int countAdjacentMines(int x, int z){
 		int count = 0;
 		for(int i = -1; i <= 1; i++){
@@ -357,6 +462,9 @@ class Board{
 		return count;
 	}
 
+	/**
+	 * @brief Initialize board tiles, number displays, and mine placement.
+	 */
 	void initializeCubes(){
 
 		srand(time(0));
@@ -386,6 +494,11 @@ class Board{
 		//for(int i = 0; i < boardSize; i++){for(int j = 0; j < boardSize; j++){if(tiles[i][j].isMine) tiles[i][j].color = RED;}}
 	}
 
+	/**
+	 * @brief Move the cursor across the board.
+	 * @param x Horizontal tile offset.
+	 * @param z Vertical tile offset.
+	 */
 	void update_cursor(int x, int z){
 		tiles[x_position][z_position].cursor = false;
 		x_position += x;
@@ -394,6 +507,10 @@ class Board{
 		tiles[x_position][z_position].cursor = true;
 	}
 
+	/**
+	 * @brief Reveal or flag the currently selected tile.
+	 * @param flag If true, toggle the flag; otherwise reveal the tile.
+	 */
 	void check_cube(bool flag){
 		if(flag) {
 			tiles[x_position][z_position].flagCube();
@@ -405,6 +522,9 @@ class Board{
 		}
 	}
 
+	/**
+	 * @brief Reset the board and clear game state.
+	 */
 	void reset_board(){
 		initializeCubes();
 		score = 0;
@@ -413,6 +533,10 @@ class Board{
 		scoreTitle = false;
 	}
 
+	/**
+	 * @brief Draw all tiles and numbers on the board.
+	 * @param baseM Base model matrix used for world transform.
+	 */
 	void draw_board(glm::mat4 baseM){
 		for(int x = 0; x < boardSize; x++){
 			for(int z = 0; z < boardSize; z++){
@@ -428,9 +552,17 @@ class Board{
 
 };
 
+/// @brief Global game board instance.
 Board board = Board(15);
 
-
+/**
+ * @brief Handle keyboard input for camera and game control.
+ * @param window GLFW window pointer.
+ * @param key Pressed key code.
+ * @param scancode Platform-specific scancode.
+ * @param action Key action event.
+ * @param mods Modifier keys bitfield.
+ */
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
     if (action==GLFW_PRESS) {
         if (key==GLFW_KEY_A) speed_x=-PI/2;
@@ -459,7 +591,11 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
 }
 
 
-//Procedura obsługi błędów
+/**
+ * @brief GLFW error callback that writes errors to stderr.
+ * @param error Error code.
+ * @param description Human-readable description of the error.
+ */
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
 }
@@ -467,13 +603,22 @@ void error_callback(int error, const char* description) {
 
 
 
+/**
+ * @brief GLFW window resize callback.
+ * @param window GLFW window pointer.
+ * @param width New window width.
+ * @param height New window height.
+ */
 void windowResizeCallback(GLFWwindow* window,int width,int height) {
     if (height==0) return;
     aspectRatio=(float)width/(float)height;
     glViewport(0,0,width,height);
 }
 
-//Procedura inicjująca
+/**
+ * @brief Initialize OpenGL state, callbacks, shaders, and textures.
+ * @param window GLFW window pointer.
+ */
 void initOpenGLProgram(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0,0,0,1);
@@ -485,7 +630,10 @@ void initOpenGLProgram(GLFWwindow* window) {
 }
 
 
-//Zwolnienie zasobów zajętych przez program
+/**
+ * @brief Release allocated OpenGL resources before exit.
+ * @param window GLFW window pointer.
+ */
 void freeOpenGLProgram(GLFWwindow* window) {
     //************Tutaj umieszczaj kod, który należy wykonać po zakończeniu pętli głównej************
 	glDeleteTextures(1,&tex0);
@@ -494,7 +642,12 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-//Procedura rysująca zawartość sceny
+/**
+ * @brief Render the current scene including the game board.
+ * @param window GLFW window pointer.
+ * @param angle_x Camera orbit angle around the y axis.
+ * @param angle_y Camera pitch angle around the x axis.
+ */
 void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -555,6 +708,12 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
 
 
 
+/**
+ * @brief Program entry point.
+ * @details Creates the OpenGL window, initializes the scene, and runs
+ *          the main render loop until the window is closed.
+ * @return Exit code, zero for success.
+ */
 int main(void)
 {
 	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno

@@ -1,0 +1,5 @@
+<map id="Number" name="Number">
+<area shape="rect" id="Node000001" title="Draws the adjacent mine count using small cubes." alt="" coords="11,79,86,104"/>
+<area shape="rect" id="Node000002" href="$classbaseCube.html" title="Shared cube rendering base for tile and number objects." alt="" coords="5,5,92,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,44,51,79,46,79,46,44"/>
+</map>
