@@ -515,7 +515,7 @@ class Board{
 		if(flag) {
 			tiles[x_position][z_position].flagCube();
 		}
-		else {
+		else if (!tiles[x_position][z_position].isRevealed) {
 			if(tiles[x_position][z_position].isMine && !tiles[x_position][z_position].isFlagged && !tiles[x_position][z_position].isRevealed && !tiles[x_position][z_position].isEscaping) score++;
 			tiles[x_position][z_position].killCube();
 			totalRevealed++;
@@ -678,10 +678,6 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
 
     glEnableVertexAttribArray(sp->a("vertex"));  //Włącz przesyłanie danych do atrybutu vertex
     glVertexAttribPointer(sp->a("vertex"),4,GL_FLOAT,false,0,vertices); //Wskaż tablicę z danymi dla atrybutu vertex
-
-	// Enable per-vertex colors (from myCubeColors)
-	glEnableVertexAttribArray(sp->a("color"));
-	glVertexAttribPointer(sp->a("color"),4,GL_FLOAT,false,0,colors);
 	
 	// Enable normals
 	glEnableVertexAttribArray(sp->a("normal"));
@@ -697,7 +693,6 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
     board.draw_board(M);
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wyłącz przesyłanie danych do atrybutu vertex
-	glDisableVertexAttribArray(sp->a("color"));
 	glDisableVertexAttribArray(sp->a("normal"));
 	glDisableVertexAttribArray(sp->a("texCoord"));
 

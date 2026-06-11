@@ -2,7 +2,6 @@
 
 out vec4 pixelColor;
 
-in vec4 vColor;
 in vec3 vNormal;
 in vec3 vFragPos;
 in vec2 iTexCoord0;
@@ -16,17 +15,17 @@ uniform sampler2D textureMap0;
 void main(void) {
     vec3 actualColor = uUseTexture ? texture(textureMap0, iTexCoord0).rgb : uColor.rgb;
 
-    // Ambient
+    // Ambient light
     float ambientStrength = 0.3;
     vec3 ambient = ambientStrength * actualColor;
     
-    // Diffuse
+    // Diffuse (Lambert)
     vec3 norm = normalize(vNormal);
     vec3 lightDir = normalize(uLightPos - vFragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * actualColor;
     
-    // Specular
+    // Specular (Phong)
     float specularStrength = 0.5;
     vec3 viewDir = normalize(uViewPos - vFragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
